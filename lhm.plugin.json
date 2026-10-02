@@ -1,0 +1,125 @@
+{
+  "identifier": "azurade-mcp",
+  "name": "Azurade AI",
+  "version": "1.11.0",
+  "author": "Azurade AI",
+  "authorUrl": "https://github.com/Azurade",
+  "category": "media-generate",
+  "cloudEndpoint": "https://azurade.com/mcp",
+  "homepage": "https://azurade.com/developers/",
+  "description": "Lets your agent make images and videos with over 30 models (Veo 3.1, Nano Banana Pro, Seedance) through one hosted MCP server, paid per generation from a credit balance that never expires.",
+  "icon": "https://azurade.com/web-app-manifest-512x512.png",
+  "tags": ["image-generation", "video-generation", "veo", "nano-banana", "seedance"],
+  "tools": [
+    {
+      "name": "list_models",
+      "description": "Every model Azurade can run: id, name, type (image or video), what it is best for, the inputs it takes (text, image, video, audio), its largest resolution and longest duration, whether it needs an input image, and the credits a request with default settings costs. When pricing.varies is true, other resolutions, durations or inputs cost differently: pricing.changes gives the whole request's price with one setting changed and the rest at their defaults, and estimate_generation prices any combination. Call get_model for a model's parameters.",
+      "inputSchema": { "type": "object", "properties": {} }
+    },
+    {
+      "name": "get_model",
+      "description": "Parameters of one model: names, types, defaults, allowed values (matched without case), numeric minimum and maximum, and the price of a request with default settings (pricing.credits; a video model's is the whole clip at its default duration), with the unit it is billed per (pricing.per: second or image, at pricing.unit_credits each). pricing.changes lists the same whole-request price with one parameter changed and the rest at their defaults; value \"any\" on an input field means a file is given. estimate_generation prices any combination. Use the parameters as extra arguments to create_generation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": { "id": { "type": "string", "description": "Model id from list_models" } },
+        "required": ["id"]
+      }
+    },
+    {
+      "name": "estimate_generation",
+      "description": "Validates a generation request and returns its exact credit cost, your balance, whether the balance covers the cost (affordable) and the credits missing if not (shortfall), without starting anything or charging. Takes the same arguments as create_generation; input images and videos are optional here.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "model": { "type": "string", "description": "Model id from list_models" },
+          "prompt": { "type": "string", "description": "What to generate, or the change to make to an input. Up to 10000 characters on most models, 20000 on a few. get_model shows whether the model requires a prompt; a few image tools take none." }
+        },
+        "required": ["model"]
+      }
+    },
+    {
+      "name": "create_generation",
+      "description": "Starts an image or video generation; the model decides which. Pass model, prompt and any parameters from get_model as top-level arguments. Image, video and audio inputs are public URLs. Credits are charged when the job is accepted and refunded automatically if it fails. Pass an idempotency_key so a retry after a timeout returns the first job instead of charging twice. Waits up to about 50 seconds: a finished job comes back with its output links and a preview; an unfinished one comes back with status pending and an id to pass to get_generation. With wait false it returns as soon as the job is submitted. The result carries your balance after the charge.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "model": { "type": "string", "description": "Model id from list_models" },
+          "prompt": { "type": "string", "description": "What to generate, or the change to make to an input. Up to 10000 characters on most models, 20000 on a few. get_model shows whether the model requires a prompt; a few image tools take none." },
+          "idempotency_key": { "type": "string", "maxLength": 255, "description": "Any string you choose, up to 255 characters. A create repeated with the same key returns the first job, marked idempotent_replay: true, instead of starting and charging a second" },
+          "wait": { "type": "boolean", "default": true, "description": "false returns as soon as the job is submitted, instead of waiting up to about 50 seconds for it to finish" }
+        },
+        "required": ["model"]
+      }
+    },
+    {
+      "name": "get_generation",
+      "description": "Status, cost and outputs of one generation, and your current balance. cost is the job's price; charged is what it took from your balance (0 for failed jobs, which are refunded). While the job is still running this waits up to about 50 seconds for it to finish; call it again with the same id if it is still pending. Output URLs are unguessable links that work without authentication.",
+      "inputSchema": {
+        "type": "object",
+        "properties": { "id": { "type": "string", "description": "Generation id from create_generation or list_generations" } },
+        "required": ["id"]
+      }
+    },
+    {
+      "name": "list_generations",
+      "description": "Your generations, newest first, each with the start of its prompt but not its other inputs (get_generation has them), optionally only one status, model or type. charged is what a job took from your balance. Pass next_cursor as cursor for the next page.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "cursor": { "type": "string", "description": "next_cursor from the previous page, for the page after it; omit for the first page" },
+          "limit": { "type": "integer", "minimum": 1, "maximum": 100, "description": "Generations per page, 1 to 100; 20 when omitted" },
+          "model": { "type": "string", "description": "Model id from list_models" },
+          "status": { "type": "string", "enum": ["pending", "completed", "failed"], "description": "Only generations with this status" },
+          "type": { "type": "string", "enum": ["image", "video"], "description": "Only image or only video generations" }
+        }
+      }
+    },
+    {
+      "name": "enhance_prompt",
+      "description": "Rewrites a short prompt into a detailed one, using the target model's own prompting guide when model is given. Costs 1 credit. The same rewrite is free inside a generation with enhance_prompt: true. The result carries your balance after the charge.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "prompt": { "type": "string", "maxLength": 10000, "description": "The prompt to rewrite" },
+          "model": { "type": "string", "description": "Model id from list_models: the rewrite follows that model's own prompting guide when it has one, and the model's type replaces type" },
+          "type": { "type": "string", "enum": ["image", "video"], "description": "Whether the prompt is for an image or a video; image when omitted, ignored when model is given" }
+        },
+        "required": ["prompt"]
+      }
+    },
+    {
+      "name": "moderate_prompt",
+      "description": "Runs the content-policy screen a generation would run and returns allow or deny, without generating. Costs 1 credit. The result carries your balance after the charge.",
+      "inputSchema": {
+        "type": "object",
+        "properties": { "prompt": { "type": "string", "maxLength": 10000, "description": "The prompt to screen" } },
+        "required": ["prompt"]
+      }
+    },
+    {
+      "name": "get_account",
+      "description": "The account behind the API key and its credit balance. Credits never expire.",
+      "inputSchema": { "type": "object", "properties": {} }
+    },
+    {
+      "name": "buy_credits",
+      "description": "Returns a card checkout link for a credit pack of 100 or 1000 credits on this account, with its price. Pass the user's country for what they will pay, tax included, in that country's currency. Tell the user the price and give them the link to open and pay; the credits are added the moment the payment goes through. Credits never expire. Use it when a call answers insufficient_credits or the user asks to top up. Prices before tax: 3.99 USD for 100 credits, 29.99 USD for 1000 credits.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "pack": { "type": "string", "enum": ["100", "1000"], "description": "Credits in the pack" },
+          "country": { "type": "string", "description": "The user's country as an ISO 3166-1 alpha-2 code, such as DE" },
+          "currency": { "type": "string", "description": "ISO 4217 code, such as EUR, to price in instead of the country's own currency" }
+        },
+        "required": ["pack"]
+      }
+    },
+    {
+      "name": "create_upload_url",
+      "description": "Returns a link for uploading an image, video or audio file (mp3, wav, m4a, aac, ogg) from this machine (up to 95 MB) to use as a generation input. Upload with the returned curl command, replacing PATH with the file's path; the JSON it prints has a url to pass in the model's image, video or audio input field. The link needs no key and takes any number of uploads for 15 minutes. A file that is already online needs no upload: pass its public URL.",
+      "inputSchema": { "type": "object", "properties": {} }
+    }
+  ]
+}
