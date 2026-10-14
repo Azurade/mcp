@@ -6,7 +6,7 @@
 
 Let your agent make images and videos. Azurade puts over 30 image and video models behind one MCP server (Veo 3.1, Seedance 2.5, Wan 2.7, Nano Banana Pro, GPT Image 2.5, Imagen 4 Ultra, FLUX Kontext, Seedream 4.5, Qwen Image and more) and bills them all from one credit balance.
 
-The server is hosted at `https://azurade.com/mcp`, so there's nothing to install; this repository is documentation only.
+The server is hosted at `https://azurade.com/mcp`, so there's nothing to install; this repository holds its documentation and an [agent skill](#agent-skill).
 
 | | |
 |---|---|
@@ -72,6 +72,16 @@ claude mcp add --transport http azurade https://azurade.com/mcp --header "Author
 ```
 
 An agent that has no key and no OAuth-capable client can ask for one through [auth.md](https://azurade.com/auth.md). It shows you a link and a six-digit code, you sign in and type the code, and the agent receives a key on your account. Agents never create accounts.
+
+## Agent skill
+
+An agent that works through the REST API instead of MCP can install the same walkthrough as a skill:
+
+```sh
+npx skills add Azurade/mcp
+```
+
+The skill is [`skills/azurade-generation/SKILL.md`](./skills/azurade-generation/SKILL.md). It covers models and prices, estimates, uploads, callbacks and error codes, and needs an API key from your profile page.
 
 ## Tools
 
