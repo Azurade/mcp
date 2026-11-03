@@ -3,6 +3,7 @@
 [![Install in Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=azurade&config=eyJ1cmwiOiJodHRwczovL2F6dXJhZGUuY29tL21jcCJ9)
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square)](https://insiders.vscode.dev/redirect/mcp/install?name=azurade&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fazurade.com%2Fmcp%22%7D)
 [![Azurade AI MCP connector](https://glama.ai/mcp/connectors/com.azurade/mcp/badges/score.svg)](https://glama.ai/mcp/connectors/com.azurade/mcp)
+[![Verified on Appside](https://appside.build/mcp-servers/azurade/badge.svg)](https://appside.build/mcp-servers/azurade/)
 
 Let your agent make images and videos. Azurade puts over 30 image and video models behind one MCP server (Veo 3.1, Seedance 2.5, Wan 2.7, Nano Banana Pro, GPT Image 2.5, Imagen 4 Ultra, FLUX Kontext, Seedream 4.5, Qwen Image and more) and bills them all from one credit balance.
 
